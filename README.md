@@ -51,7 +51,7 @@ GET records from the log:
 
 The project's features are as follows:
 
-⭐ TODO 1
+⭐ Chapter 1: JSON/HTTP commit log service that stores and retrieves records from an in-memory log.
 <br />
 ⭐ TODO 2
 <br />
