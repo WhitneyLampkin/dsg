@@ -33,6 +33,20 @@ To run the program's API, execute the command below from proglog/cmd/server:
 $ go run main.go
 ```
 
+POST new records to the log:
+
+```shell
+$ curl -X POST localhost:8080 -d '{"record": {"value": "TGV0J3MgR28gIzEK"}}'
+​$ curl -X POST localhost:8080 -d '{"record": {"value": "TGV0J3MgR28gIzIK"}}'
+$ curl -X POST localhost:8080 -d '{"record": {"value": "TGV0J3MgR28gIzMK"}}'
+```
+
+GET records from the log:
+
+```shell
+ curl -X GET localhost:8080 -d '{"offset": [RECORD_OFFSET_#]}'
+```
+
 ## Features
 
 The project's features are as follows:
@@ -45,7 +59,7 @@ The project's features are as follows:
 
 ## License
 
-GNU General Public License 3.0, see [LICENSE](./LICENSE).
+None
 
 <h1 align="center" style="border-bottom: none; margin-top: 50px;">
     <a href="" target="_blank">
