@@ -1,5 +1,5 @@
 <h1 align="center" style="border-bottom: none">
-    <a href="https://github.com/WhitneyLampkin/devscriber" target="_blank">
+    <a href="https://github.com/WhitneyLampkin/devscriber/blob/main/assets/default-img.png?raw=true" target="_blank">
         <img alt="" src="https://github.com/WhitneyLampkin/devscriber/blob/main/assets/default-img.png?raw=true" style="border-radius: 50%; height: 100px;">
     </a>
     <br>
@@ -62,7 +62,7 @@ The project's features are as follows:
 None
 
 <h1 align="center" style="border-bottom: none; margin-top: 50px;">
-    <a href="https://github.com/WhitneyLampkin/devscriber" target="_blank">
+    <a href="https://github.com/WhitneyLampkin/devscriber/blob/main/assets/default-img.png?raw=true" target="_blank">
         <img alt="" src="https://github.com/WhitneyLampkin/devscriber/blob/main/assets/default-img.png?raw=true" style="border-radius: 50%; height: 100px;">
     </a>
 </h1>
