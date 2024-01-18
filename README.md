@@ -53,7 +53,7 @@ The project's features are as follows:
 
 ⭐ Chapter 1: JSON/HTTP commit log service that stores and retrieves records from an in-memory log.
 <br />
-⭐ TODO 2
+⭐ Chapter 2: Protobuf fundamentals and using them to create a protocol buffer for the Record type.
 <br />
 ⭐ TODO 3
 
