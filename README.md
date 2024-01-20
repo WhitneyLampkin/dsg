@@ -19,8 +19,6 @@
 ![GitHub repo size](https://img.shields.io/github/repo-size/WhitneyLampkin/proglog?label=Repo%20Size&color=teal)
 ![GitHub repo file count (file type)](https://img.shields.io/github/directory-file-count/WhitneyLampkin/proglog?label=Files&color=purple)
 
-
-
 </div>
 
 This GitHub repo has code examples from the [Distributed Services with Go]() O'Reilly book by Travis Jeffrey.
@@ -55,7 +53,7 @@ The project's features are as follows:
 <br />
 ⭐ Chapter 2: Protobuf fundamentals and using them to create a protocol buffer for the Record type.
 <br />
-⭐ TODO 3
+⭐ Chapter 3: Writing a custom log package
 
 ## License
 
