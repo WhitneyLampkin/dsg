@@ -54,6 +54,8 @@ The project's features are as follows:
 ⭐ Chapter 2: Protobuf fundamentals and using them to create a protocol buffer for the Record type.
 <br />
 ⭐ Chapter 3: Writing a custom log package
+<br />
+⭐ Chapter 4: Serve Requests w/ gRPC
 
 ## License
 
