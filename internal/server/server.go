@@ -48,6 +48,8 @@ func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api
 }
 
 // Bidirectional streaming RPC
+// Client streams data into the server's log
+// Server sends a response
 func (s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer) error {
 	for {
 		req, err := stream.Recv()
@@ -65,6 +67,8 @@ func (s *grpcServer) ProduceStream(stream api.Log_ProduceStreamServer) error {
 }
 
 // Server-side streaming RPC
+// Client tells server where in the log to read records
+// Server streams every record that follows until the end of the log
 func (s *grpcServer) ConsumeStream(req *api.ConsumeRequest, stream api.Log_ConsumeStreamServer) error {
 	for {
 		select {
