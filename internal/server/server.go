@@ -4,6 +4,7 @@ import (
 	"context"
 
 	api "github.com/whitneylampkin/proglog/api/v1"
+	"google.golang.org/grpc"
 )
 
 type Config struct {
@@ -21,6 +22,17 @@ type grpcServer struct {
 }
 
 var _ api.LogServer = (*grpcServer)(nil)
+
+// Allows users to instantiate, create and register the gRPC service
+func NewGRPCServer(config *Config) (*grpc.Server, error) {
+	gsrv := grpc.NewServer()
+	srv, err := newgrpcServer(config)
+	if err != nil {
+		return nil, err
+	}
+	api.RegisterLogServer(gsrv, srv)
+	return gsrv, nil
+}
 
 func newgrpcServer(config *Config) (srv *grpcServer, err error) {
 	srv = &grpcServer{
