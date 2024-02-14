@@ -48,7 +48,9 @@ func setupTest(t *testing.T, fn func(*Config)) (
 
 	// Get client's certificate and enable for TSL connections
 	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
-		CAFile: config.CAFile,
+		CertFile: config.ClientCertFile,
+		KeyFile:  config.ClientKeyFile,
+		CAFile:   config.CAFile,
 	})
 	require.NoError(t, err)
 

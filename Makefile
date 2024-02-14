@@ -26,7 +26,7 @@ gencert:
 
 .PHONY: test
 test:
-	go test -race./...
+	go test -v ./...
 
 .PHONY: compile
 compile:
