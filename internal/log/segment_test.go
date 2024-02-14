@@ -10,8 +10,8 @@ import (
 )
 
 func TestSegment(t *testing.T) {
-	dir, _ := os.CreateTemp("", "segment-test")
-	defer os.RemoveAll(dir.Name())
+	dir, _ := os.MkdirTemp("", "segment-test")
+	defer os.RemoveAll(dir)
 
 	want := &api.Record{Value: []byte("hello world")}
 
@@ -19,7 +19,7 @@ func TestSegment(t *testing.T) {
 	c.Segment.MaxStoreBytes = 1024
 	c.Segment.MaxIndexBytes = entWidth * 3
 
-	s, err := newSegment(dir.Name(), 16, c)
+	s, err := newSegment(dir, 16, c)
 	require.NoError(t, err)
 	require.Equal(t, uint64(16), s.nextOffset, s.nextOffset)
 	require.False(t, s.IsMaxed())
@@ -45,14 +45,14 @@ func TestSegment(t *testing.T) {
 	c.Segment.MaxStoreBytes = uint64(len(want.Value) * 3)
 	c.Segment.MaxIndexBytes = 1024
 
-	s, err = newSegment(dir.Name(), 16, c)
+	s, err = newSegment(dir, 16, c)
 	require.NoError(t, err)
 	// maxed store
 	require.True(t, s.IsMaxed())
 
 	err = s.Remove()
 	require.NoError(t, err)
-	s, err = newSegment(dir.Name(), 16, c)
+	s, err = newSegment(dir, 16, c)
 	require.NoError(t, err)
 	require.False(t, s.IsMaxed())
 }

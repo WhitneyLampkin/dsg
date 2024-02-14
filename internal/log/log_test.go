@@ -22,13 +22,13 @@ func TestLog(t *testing.T) {
 		"truncate":                          testTruncate,
 	} {
 		t.Run(scenario, func(t *testing.T) {
-			dir, err := os.CreateTemp("", "store-test")
+			dir, err := os.MkdirTemp("", "store-test")
 			require.NoError(t, err)
-			defer os.RemoveAll(dir.Name())
+			defer os.RemoveAll(dir)
 
 			c := Config{}
 			c.Segment.MaxStoreBytes = 32
-			log, err := NewLog(dir.Name(), c)
+			log, err := NewLog(dir, c)
 			require.NoError(t, err)
 
 			fn(t, log)
