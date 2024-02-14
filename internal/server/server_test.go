@@ -8,8 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	api "github.com/whitneylampkin/proglog/api/v1"
+	"github.com/whitneylampkin/proglog/internal/config"
 	"github.com/whitneylampkin/proglog/internal/log"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 )
 
@@ -39,6 +41,63 @@ func setupTest(t *testing.T, fn func(*Config)) (
 	cfg *Config,
 	teardown func(),
 ) {
+	t.Helper()
+
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	// Get client's certificate and enable for TSL connections
+	clientTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CAFile: config.CAFile,
+	})
+	require.NoError(t, err)
+
+	clientCreds := credentials.NewTLS(clientTLSConfig)
+	cc, err := grpc.Dial(
+		l.Addr().String(),
+		grpc.WithTransportCredentials(clientCreds),
+	)
+	require.NoError(t, err)
+
+	client = api.NewLogClient(cc)
+
+	// Get server's certificate & enable for TLS connections
+	serverTLSConfig, err := config.SetupTLSConfig(config.TLSConfig{
+		CertFile:      config.ServerCertFile,
+		KeyFile:       config.ServerKeyFile,
+		CAFile:        config.CAFile,
+		ServerAddress: l.Addr().String(),
+	})
+	require.NoError(t, err)
+	serverCreds := credentials.NewTLS(serverTLSConfig)
+
+	dir, err := os.MkdirTemp("", "server-test")
+	require.NoError(t, err)
+
+	clog, err := log.NewLog(dir, log.Config{})
+	require.NoError(t, err)
+
+	cfg = &Config{
+		CommitLog: clog,
+	}
+	if fn != nil {
+		fn(cfg)
+	}
+	server, err := NewGRPCServer(cfg, grpc.Creds(serverCreds))
+	require.NoError(t, err)
+
+	go func() {
+		server.Serve(l)
+	}()
+
+	return client, cfg, func() {
+		server.Stop()
+		cc.Close()
+		l.Close()
+	}
+
+	/* OLD VERSION
+
 	t.Helper()
 
 	// Using port 0 automatically assigns a free port
@@ -77,6 +136,7 @@ func setupTest(t *testing.T, fn func(*Config)) (
 		l.Close()
 		clog.Remove()
 	}
+	*/
 }
 
 func testProduceConsume(t *testing.T, client api.LogClient, config *Config) {
