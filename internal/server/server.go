@@ -35,7 +35,6 @@ type Authorizer interface {
 }
 
 type grpcServer struct {
-	api.UnimplementedLogServer
 	*Config
 }
 
@@ -62,7 +61,12 @@ func NewGRPCServer(config *Config, opts ...grpc.ServerOption) (
 	if err != nil {
 		return nil, err
 	}
-	api.RegisterLogServer(gsrv, srv)
+	api.RegisterLogService(gsrv, &api.LogService{
+		Produce:       srv.Produce,
+		Consume:       srv.Consume,
+		ConsumeStream: srv.ConsumeStream,
+		ProduceStream: srv.ProduceStream,
+	})
 	return gsrv, nil
 }
 
