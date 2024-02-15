@@ -3,10 +3,10 @@ package server
 import (
 	"context"
 
-	api "github.com/whitneylampkin/proglog/api/v1"
-
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_auth "github.com/grpc-ecosystem/go-grpc-middleware/auth"
+	api "github.com/whitneylampkin/proglog/api/v1"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
