@@ -23,6 +23,16 @@
 
 This GitHub repo has code examples from the [Distributed Services with Go]() O'Reilly book by Travis Jeffrey.
 
+## Initial Setup
+
+After cloning the repo, run the following:
+
+```shell
+make init
+make gencert
+make compile
+```
+
 ## Usage
 
 To run the program's API, execute the command below from proglog/cmd/server:
@@ -43,6 +53,12 @@ GET records from the log:
 
 ```shell
  curl -X GET localhost:8080 -d '{"offset": [RECORD_OFFSET_#]}'
+```
+
+## Testing
+
+```shell
+make test
 ```
 
 ## Features
