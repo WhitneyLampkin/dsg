@@ -56,6 +56,21 @@ The project's features are as follows:
 ⭐ Chapter 3: Writing a custom log package
 <br />
 ⭐ Chapter 4: Serve Requests w/ gRPC
+<br />
+⭐ Chapter 5: Securing the Service w/ Mutual TLS Authentication
+<br />
+⭐ Chapter 6: Observing the System
+
+## Notes
+
+- Chapter 5 uses `go get` to install the cfssl tools. If this doesn't work, I recommend using `sudo apt install golang-cfssl` and `sudo apt install golang-cfssljson`.
+- *Observability* - a measure of how well we understand a system's behavior or state based on external outputs.
+- Types of Telemetry
+    1. *Metrics* - measure numeric data over time (counters, histograms, gauges).
+        - Google's 4 Golden Signals - latency, errors, traffic, saturation (L.E.T.S.).
+    1. *Structured logs* - descriptions of events that have occurred in a system.
+    1. *Traces* - details the request lifecycle as it flows through the system.
+
 
 ## License
 
