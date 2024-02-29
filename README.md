@@ -76,6 +76,8 @@ The project's features are as follows:
 ⭐ Chapter 5: Securing the Service w/ Mutual TLS Authentication
 <br />
 ⭐ Chapter 6: Observing the System
+<br />
+⭐ Chapter 7: Adding Service Discovery
 
 ## Notes
 
