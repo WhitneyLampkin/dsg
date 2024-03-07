@@ -1,6 +1,10 @@
 package log
 
 import (
+	"crypto/tls"
+	"fmt"
+	"io"
+	"net"
 	"os"
 	"path/filepath"
 	"time"
@@ -28,16 +32,16 @@ type fsm struct {
 	log *Log
 }
 
-type RequestType uint8 
+type RequestType uint8
 
 type snapshot struct {
 	reader io.Reader
 }
 
 type StreamLayer struct {
-	ln net.Listener
+	ln              net.Listener
 	serverTLSConfig *tls.Config
-	peerTLSConfig *tls.Config
+	peerTLSConfig   *tls.Config
 }
 
 func NewDistributedLog(dataDir string, config Config) (*DistributedLog, error) {
@@ -170,7 +174,7 @@ func (l *DistributedLog) Append(record *api.Record) (uint64, error) {
 	return res.(*api.ProduceResponse).Offset, nil
 }
 
-func (l *DistributedLog) apply(reqType RequestType req proto.Message) (
+func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (
 	interface{},
 	error,
 ) {
@@ -179,7 +183,7 @@ func (l *DistributedLog) apply(reqType RequestType req proto.Message) (
 	if err != nil {
 		return nil, err
 	}
-	
+
 	b, err := proto.Marshal(req)
 	if err != nil {
 		return nil, err
@@ -206,6 +210,62 @@ func (l *DistributedLog) apply(reqType RequestType req proto.Message) (
 
 func (l *DistributedLog) Read(offset unint64) (*api.Record, error) {
 	return l.log.Read(offset)
+}
+
+func (l *DistributedLog) Join(id, addr string) error {
+	configFuture := l.raft.GetConfiguration()
+	if err := configFuture.Error(); err != nil {
+		return err
+	}
+	serverID := raft.ServerID(id)
+	serverAddr := raft.ServerAddress(addr)
+	for _, srv := range configFuture.Configuration().Servers {
+		if srv.ID == serverID || srv.Address == serverAddr {
+			if srv.ID == serverID && srv.Address == serverAddr {
+				// server has already joined
+				return nil
+			}
+			// remove the existing server
+			removeFuture := l.raft.RemoveServer(serverID, 0, 0)
+			if err := removeFuture.Error(); err != nil {
+				return err
+			}
+		}
+	}
+	addFuture := l.raft.AddVoter(serverID, serverAddr, 0, 0)
+	if err := addFuture.Error(); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *DistributedLog) Leave(id string) error {
+	removeFuture := l.raft.RemoveServer(raft.ServerID(id), 0, 0)
+	return removeFuture.Error()
+}
+
+func (l *DistributedLog) WaitForLeader(timeout time.Duration) error {
+	timeoutc := time.After(timeout)
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-timeoutc:
+			return fmt.Errorf("timed out")
+		case <-ticker.C:
+			if l := l.raft.Leader(); l != "" {
+				return nil
+			}
+		}
+	}
+}
+
+func (l *DistributedLog) Close() error {
+	f := l.raft.Shutdown()
+	if err := f.Error(); err != nil {
+		return err
+	}
+	return l.log.Close()
 }
 
 func (l *fsm) Apply(record *raft.Log) interface{} {
@@ -321,8 +381,8 @@ func (l *logStore) StoreLogs(records []*raft.Log) error {
 	for _, record := range records {
 		if _, err := l.Append(&api.Record{
 			Value: record.Data,
-			Term: record.Term,
-			Type: uint32(record.Type),
+			Term:  record.Term,
+			Type:  uint32(record.Type),
 		}); err != nil {
 			return err
 		}
@@ -340,49 +400,49 @@ func NewStreamLayer(
 	peerTLSConfig *tls.Config,
 ) *StreamLayer {
 	return &StreamLayer{
-		ln: ln,
+		ln:              ln,
 		serverTLSConfig: serverTLSConfig,
-		peerTLSConfig: peerTLSConfig,
+		peerTLSConfig:   peerTLSConfig,
 	}
 }
 
 const RaftRPC = 1
- 	
+
 func (s *StreamLayer) Dial(
-		addr raft.ServerAddress,
-		timeout time.Duration,
+	addr raft.ServerAddress,
+	timeout time.Duration,
 ) (net.Conn, error) {
-		dialer := &net.Dialer{Timeout: timeout}
-		var conn, err = dialer.Dial("tcp", string(addr))
-		if err != nil {
-				return nil, err
-		}
-		// identify to mux this is a raft rpc
-		_, err = conn.Write([]byte{byte(RaftRPC)})
-		if err != nil {
-				return nil, err
-		}
-		if s.peerTLSConfig != nil {
-				conn = tls.Client(conn, s.peerTLSConfig)
-		}
-		return conn, err
+	dialer := &net.Dialer{Timeout: timeout}
+	var conn, err = dialer.Dial("tcp", string(addr))
+	if err != nil {
+		return nil, err
+	}
+	// identify to mux this is a raft rpc
+	_, err = conn.Write([]byte{byte(RaftRPC)})
+	if err != nil {
+		return nil, err
+	}
+	if s.peerTLSConfig != nil {
+		conn = tls.Client(conn, s.peerTLSConfig)
+	}
+	return conn, err
 }
 
 func (s *StreamLayer) Accept() (net.Conn, error) {
 	conn, err := s.ln.Accept()
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	b := make([]byte, 1)
 	_, err = conn.Read(b)
 	if err != nil {
-			return nil, err
+		return nil, err
 	}
 	if bytes.Compare([]byte{byte(RaftRPC)}, b) != 0 {
-			return nil, fmt.Errorf("not a raft rpc")
+		return nil, fmt.Errorf("not a raft rpc")
 	}
 	if s.serverTLSConfig != nil {
-			return tls.Server(conn, s.serverTLSConfig), nil
+		return tls.Server(conn, s.serverTLSConfig), nil
 	}
 	return conn, nil
 }

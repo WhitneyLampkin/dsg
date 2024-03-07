@@ -62,6 +62,7 @@ require (
 
 require (
 	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/soheilhy/cmux v0.1.5
 	github.com/stretchr/testify v1.8.4
 	github.com/tysonmote/gommap v0.0.2
 	google.golang.org/protobuf v1.32.0
