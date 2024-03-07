@@ -10,6 +10,8 @@ import (
 )
 
 var _ raft.FSM = (*fsm)(nil)
+var _ raft.FSMSnapshot = (*snapshot)(nil)
+var _ raft.LogStore = (*logStore)(nil)
 
 const (
 	AppendRequestType RequestType = 0
@@ -17,6 +19,10 @@ const (
 
 type fsm struct {
 	log *Log
+}
+
+type snapshot struct {
+	reader io.Reader
 }
 
 type RequestType uint8 
@@ -182,7 +188,7 @@ func (l *DistributedLog) apply(reqType RequestType req proto.Message) (
 	if future.Error() != nil {
 		return nil, future.Error()
 	}
-	
+
 	res := future.Response()
 	if err, ok := res.(error); ok {
 		return nil, err
@@ -222,3 +228,60 @@ func (l *fsm) applyAppend(b []byte) interface{} {
 
 	return &api.ProduceResponse{Offset: offset}
 }
+
+func (f *fsm) Snapshot() (raft.FSMSnapshot, error) {
+	r := f.log.Reader()
+	return &snapshot{reader: r}, nil
+}
+
+func (s *snapshot) Persist(sink raft.SnapshotSink) error {
+	if _, err := io.Copy(sink, s.reader); err != nil {
+		_ = sink.Cancel()
+		return err
+	}
+	return sink.Close()
+}
+
+func (s *snapshot) Release() {}
+
+func (f *fsm) Restore(r io.ReadCloser) error {
+	b := make([]byte, lenWidth)
+	var buf bytes.Bufer
+	// What does the empty 2nd value represent?
+	for i := 0; ; i++ {
+		_, err := io.ReadFull(r, b)
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+		size := int64(enc.Uint64(b))
+		if _, err = io.CopyN(&buf, r, size); err != nil {
+			return err
+		}
+		record := &api.Record{}
+		if err = proto.Unmarshal(buf.Bytes(), record); err != nil {
+			return err
+		}
+		if i == 0 {
+			f.log.Config.Segment.InitialOffset = record.Offset
+			if err := f.log.Reset(); err != nil {
+				return err
+			}
+		}
+		if _, err = f.log.Append(record); err != nil {
+			return err
+		}
+		buf.Reset()
+	}
+	return nil
+}
+
+func newLogStore(dir string, c Config) (*logStore, error) {
+	log, err := NewLog(dir, c)
+	if err != nil {
+		return nil, err
+	}
+	return &logStore{log}, nil
+}
+
