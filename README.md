@@ -78,6 +78,8 @@ The project's features are as follows:
 ⭐ Chapter 6: Observing the System
 <br />
 ⭐ Chapter 7: Adding Service Discovery
+<br />
+⭐ Chapter 8: Implementing Raft
 
 ## Notes
 
