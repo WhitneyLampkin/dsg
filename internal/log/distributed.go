@@ -1,6 +1,7 @@
 package log
 
 import (
+	"bytes"
 	"crypto/tls"
 	"fmt"
 	"io"
@@ -9,8 +10,12 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/hashicorp/raft"
+	raftboltdb "github.com/hashicorp/raft-boltdb"
 	"google.golang.org/protobuf/proto"
+
+	"github.com/hashicorp/raft"
+
+	api "github.com/whitneylampkin/proglog/api/v1"
 )
 
 var _ raft.FSM = (*fsm)(nil)
@@ -30,6 +35,10 @@ type DistributedLog struct {
 
 type fsm struct {
 	log *Log
+}
+
+type logStore struct {
+	*Log
 }
 
 type RequestType uint8
@@ -85,7 +94,7 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 		return err
 	}
 
-	stableStore, err := raftbolt.NewBoltSTore(
+	stableStore, err := raftboltdb.NewBoltStore(
 		filepath.Join(dataDir, "raft", "stable"),
 	)
 	if err != nil {
@@ -159,8 +168,9 @@ func (l *DistributedLog) setupRaft(dataDir string) error {
 				Address: transport.LocalAddr(),
 			}},
 		}
-		return err
+		err = l.raft.BootstrapCluster(config).Error()
 	}
+	return err
 }
 
 func (l *DistributedLog) Append(record *api.Record) (uint64, error) {
@@ -208,7 +218,7 @@ func (l *DistributedLog) apply(reqType RequestType, req proto.Message) (
 	return res, nil
 }
 
-func (l *DistributedLog) Read(offset unint64) (*api.Record, error) {
+func (l *DistributedLog) Read(offset uint64) (*api.Record, error) {
 	return l.log.Read(offset)
 }
 
@@ -313,7 +323,7 @@ func (s *snapshot) Release() {}
 
 func (f *fsm) Restore(r io.ReadCloser) error {
 	b := make([]byte, lenWidth)
-	var buf bytes.Bufer
+	var buf bytes.Buffer
 	// What does the empty 2nd value represent?
 	for i := 0; ; i++ {
 		_, err := io.ReadFull(r, b)
@@ -352,7 +362,7 @@ func newLogStore(dir string, c Config) (*logStore, error) {
 	return &logStore{log}, nil
 }
 
-func (l *logStore) FirstIndex() (unint64f, error) {
+func (l *logStore) FirstIndex() (uint64, error) {
 	return l.LowestOffset()
 }
 
@@ -374,7 +384,7 @@ func (l *logStore) GetLog(index uint64, out *raft.Log) error {
 }
 
 func (l *logStore) StoreLog(record *raft.Log) error {
-	return l.StoreLog([]*raft.Log{record})
+	return l.StoreLogs([]*raft.Log{record})
 }
 
 func (l *logStore) StoreLogs(records []*raft.Log) error {
