@@ -18,6 +18,7 @@ import (
 	api "github.com/whitneylampkin/proglog/api/v1"
 )
 
+// FSM = Raft's Finite State Machine
 var _ raft.FSM = (*fsm)(nil)
 var _ raft.FSMSnapshot = (*snapshot)(nil)
 var _ raft.LogStore = (*logStore)(nil)
