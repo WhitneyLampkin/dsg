@@ -22,16 +22,16 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type Config struct {
-	CommitLog  CommitLog
-	Authorizer Authorizer
-}
-
 const (
 	objectWildcard = "*"
 	produceAction  = "produce"
 	consumeAction  = "consume"
 )
+
+type Config struct {
+	CommitLog  CommitLog
+	Authorizer Authorizer
+}
 
 type CommitLog interface {
 	Append(*api.Record) (uint64, error)
