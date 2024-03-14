@@ -5,6 +5,11 @@ import (
 	"sync"
 )
 
+type Record struct {
+	Value  []byte `json:"value"`
+	Offset uint64 `json:"offset"`
+}
+
 type Log struct {
 	mu      sync.Mutex
 	records []Record
@@ -30,13 +35,5 @@ func (c *Log) Read(offset uint64) (Record, error) {
 	}
 	return c.records[offset], nil
 }
-
-// START:types
-type Record struct {
-	Value  []byte `json:"value"`
-	Offset uint64 `json:"offset"`
-}
-
-//END:types
 
 var ErrOffsetNotFound = fmt.Errorf("offset not found")
