@@ -80,6 +80,9 @@ The project's features are as follows:
 ⭐ Chapter 7: Adding Service Discovery
 <br />
 ⭐ Chapter 8: Implementing Raft
+<br />
+⭐ Chapter 9: Discover Servers and Load Balance from the Client
+<br />
 
 ## Notes
 
