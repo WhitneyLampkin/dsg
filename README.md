@@ -93,7 +93,13 @@ The project's features are as follows:
         - Google's 4 Golden Signals - latency, errors, traffic, saturation (L.E.T.S.).
     1. *Structured logs* - descriptions of events that have occurred in a system.
     1. *Traces* - details the request lifecycle as it flows through the system.
-
+- Chapter 9: Load balancing strategies
+    1. Server Proxying
+        ![image](./assets/c9-server-proxying.png)
+    1. External Load Balancing
+        ![image](./assets/c9-external-loadbalancing.png)
+    1. Client-side Balancing
+        ![image](./assets/c9-client-loadbalancing.png)
 
 ## License
 
