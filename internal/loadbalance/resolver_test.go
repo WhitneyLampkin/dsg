@@ -52,12 +52,12 @@ func TestResolver(t *testing.T) {
 		DialCreds: clientCreds,
 	}
 	r := &loadbalance.Resolver{}
-	newURL, err := url.Parse("grpc://" + l.Addr().String())
+	targetURL, err := url.Parse("grpc://" + l.Addr().String())
 	require.NoError(t, err)
 
 	_, err = r.Build(
 		resolver.Target{
-			URL: *newURL, // Updated from Endpoint used in book
+			URL: *targetURL, // Updated from Endpoint used in book
 		},
 		conn, // Updated from conn used in book
 		opts,
