@@ -462,6 +462,22 @@ func (s *StreamLayer) Close() error {
 	return s.ln.Close()
 }
 
+func (l *DistributedLog) GetServers() ([]*api.Server, error) {
+	future := l.raft.GetConfiguration()
+	if err := future.Error(); err != nil {
+		return nil, err
+	}
+	var servers []*api.Server
+	for _, server := range future.Configuration().Servers {
+		servers = append(servers, &api.Server{
+			Id:       string(server.ID),
+			RpcAddr:  string(server.Address),
+			IsLeader: l.raft.Leader() == server.Address,
+		})
+	}
+	return servers, nil
+}
+
 func (s *StreamLayer) Addr() net.Addr {
 	return s.ln.Addr()
 }
