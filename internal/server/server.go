@@ -28,9 +28,8 @@ const (
 	consumeAction  = "consume"
 )
 
-type Config struct {
-	CommitLog  CommitLog
-	Authorizer Authorizer
+type Authorizer interface {
+	Authorize(subject, object, action string) error
 }
 
 type CommitLog interface {
@@ -38,8 +37,14 @@ type CommitLog interface {
 	Read(uint64) (*api.Record, error)
 }
 
-type Authorizer interface {
-	Authorize(subject, object, action string) error
+type Config struct {
+	CommitLog   CommitLog
+	Authorizer  Authorizer
+	GetServerer GetServerer
+}
+
+type GetServerer interface {
+	GetServers() ([]*api.Server, error)
 }
 
 type grpcServer struct {
@@ -140,6 +145,17 @@ func (s *grpcServer) Consume(ctx context.Context, req *api.ConsumeRequest) (*api
 		return nil, err
 	}
 	return &api.ConsumeResponse{Record: record}, nil
+}
+
+func (s *grpcServer) GetServers(
+	ctx context.Context,
+	req *api.GetServersRequest,
+) (*api.GetServersResponse, error) {
+	servers, err := s.GetServerer.GetServers()
+	if err != nil {
+		return nil, err
+	}
+	return &api.GetServersResponse{Servers: servers}, nil
 }
 
 // Bidirectional streaming RPC
