@@ -2,6 +2,7 @@ package loadbalance_test
 
 import (
 	"net"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -51,11 +52,14 @@ func TestResolver(t *testing.T) {
 		DialCreds: clientCreds,
 	}
 	r := &loadbalance.Resolver{}
+	newURL, err := url.Parse("grpc://" + l.Addr().String())
+	require.NoError(t, err)
+
 	_, err = r.Build(
 		resolver.Target{
-			Endpoint: l.Addr().String(),
+			URL: *newURL, // Updated from Endpoint used in book
 		},
-		conn,
+		conn, // Updated from conn used in book
 		opts,
 	)
 	require.NoError(t, err)
@@ -81,7 +85,7 @@ func (s *getServers) GetServers() ([]*api.Server, error) {
 	return []*api.Server{{
 		Id:       "leader",
 		RpcAddr:  "localhost:9001",
-		IsLeader: true,
+		IsLeader: "true",
 	}, {
 		Id:      "follower",
 		RpcAddr: "localhost:9002",
@@ -89,12 +93,13 @@ func (s *getServers) GetServers() ([]*api.Server, error) {
 }
 
 type clientConn struct {
-	resolver.ClientConn
+	conn  resolver.ClientConn
 	state resolver.State
 }
 
-func (c *clientConn) UpdateState(state resolver.State) {
+func (c *clientConn) UpdateState(state resolver.State) error {
 	c.state = state
+	return nil
 }
 
 func (c *clientConn) ReportError(err error) {}

@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 	"google.golang.org/grpc/serviceconfig"
+
+	api "github.com/whitneylampkin/proglog/api/v1"
 )
 
 const Name = "proglog"
