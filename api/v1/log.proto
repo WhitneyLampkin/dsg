@@ -11,13 +11,17 @@ message Record {
     uint32 type = 4;
 }
 
+// RPC Endpoints
 service Log {
     rpc Produce(ProduceRequest) returns (ProduceResponse) {}
     rpc Consume(ConsumeRequest) returns (ConsumeResponse) {}
     rpc ConsumeStream(ConsumeRequest) returns (stream ConsumeResponse) {}
     rpc ProduceStream(stream ProduceRequest) returns (stream ProduceResponse) {}
+    // Endpoint resolvers call to get the cluster's servers
+    rpc GetServers(GetServersRequest) returns (GetServersResponse) {}
 }
 
+// Endpoint Requests/Responses
 message ProduceRequest {
     Record record = 1;
 }
@@ -32,4 +36,16 @@ message ConsumeRequest {
 
 message ConsumeResponse {
     Record record = 2;
+}
+
+message GetServersRequest {}
+
+message GetServersResponse {
+    repeated Server servers = 1;
+}
+
+message Server {
+    string id = 1;
+    string rpc_addr = 2;
+    string is_leader = 3;
 }
